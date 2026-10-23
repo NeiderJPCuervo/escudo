@@ -1,0 +1,63 @@
+[project]
+name = "escudo"
+version = "0.1.0"
+description = "Detección de fraude en tiempo real para pagos inmediatos (monorepo)"
+requires-python = ">=3.12"
+dependencies = ["escudo-domain", "escudo-sim"]
+
+[tool.uv]
+package = false  # la raíz solo orquesta el workspace; no se publica
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+escudo-domain = { workspace = true }
+escudo-sim = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-cov>=6.0",
+    "hypothesis>=6.120",
+    "ruff>=0.9",
+    "mypy>=1.14",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+extend-exclude = ["docs"]  # documento de diseño: su código es referencia histórica, no fuente
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF", "PL"]
+ignore = [
+    "RUF001", "RUF002", "RUF003",  # tipografía en español (tildes, "×", "≈") en textos y comentarios
+    "PLR2004",                     # números mágicos: los umbrales del dominio son datos explícitos
+    "PLR0913", "PLR0917",          # Transfer y los emisores del simulador tienen muchos campos a propósito
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["escudo_domain", "escudo_sim"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**" = ["PLR2004", "PLC0415"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["packages/escudo-domain/src", "packages/escudo-sim/src", "packages/escudo-domain/tests",
+         "packages/escudo-sim/tests", "tests"]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib --strict-markers -q"
+testpaths = ["packages/escudo-domain/tests", "packages/escudo-sim/tests", "tests"]
+
+[tool.coverage.run]
+branch = true
+source = ["escudo_domain", "escudo_sim"]
+
+[tool.coverage.report]
+fail_under = 90
+show_missing = true
+skip_covered = true
